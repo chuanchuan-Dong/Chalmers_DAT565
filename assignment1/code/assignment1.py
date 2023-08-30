@@ -19,30 +19,29 @@ LifeExpData = pd.read_csv('data/life-expectancy-at-birth-total-years.csv')
 
 LifeExpCountry, GdpCountry = LifeExpData['Entity'].unique(), GdpData['Entity'].unique()
 all_CountryList = np.intersect1d(LifeExpCountry, GdpCountry)         
-all_years = np.arange(1970,2019)
+all_years = np.arange(1970,2020)
 
 #create the new dataframe, contains all possible combinations.
 all_combination = pd.MultiIndex.from_product([all_CountryList, all_years], names=['Entity', 'Year'])
-ConbinedData = pd.DataFrame(index=all_combination).reset_index()
-#merge data accroding to the ConbinedData colum index.
-ConbinedData = pd.merge(ConbinedData, LifeExpData, on=['Entity','Year'], how='left' )
-ConbinedData = pd.merge(ConbinedData, GdpData, on=['Entity','Year','Code'], how='left' )
+CombinedData = pd.DataFrame(index=all_combination).reset_index()
+
+#merge data accroding to the CombinedData colum index.
+CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year'], how='left' )
+CombinedData = pd.merge(CombinedData, GdpData, on=['Entity','Year','Code'], how='left' )
 
 #Fill the miss data by the mean of each country
-CountryMeans = ConbinedData.groupby('Entity')[[LifeExpShort,GdpShort]].mean()
-ConbinedData[LifeExpShort].fillna(CountryMeans[LifeExpShort], inplace=True)
-ConbinedData[GdpShort].fillna(CountryMeans[GdpShort], inplace=True)
+CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort]].mean()
 
 
-
-task1()
+CombinedData[LifeExpShort].fillna(CountryMeans[LifeExpShort], inplace=True)
+CombinedData[GdpShort].fillna(CountryMeans[GdpShort], inplace=True)
 
 
 def task1(DataSet):
     LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
     Country_LifeExp_Mean = DataSet.groupby("Entity")[LifeExpShort].mean()
     Upper_LifeExp = Country_LifeExp_Mean[Country_LifeExp_Mean >= LifeExp_Mean+LifeExp_std]
-    Upper_LifeExp.sort_values(ascending=False) # sort the value
+    Upper_LifeExp = Upper_LifeExp.sort_values(ascending=False) # sort the value
     print(Upper_LifeExp)
     plt.figure()
     plt.bar(Upper_LifeExp.index, Upper_LifeExp.values)
@@ -75,7 +74,5 @@ def task2(DataSet):
 
 if __name__ == '__main__':
 # Uncomment when executing task
-
-    #GdpVSExp()
-    #task1(ConbinedData)
-    #task2(ConbinedData)
+  task1(CombinedData)
+  # task2(CombinedData)
