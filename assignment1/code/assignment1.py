@@ -44,7 +44,11 @@ def task1():
     print(result)
     print(type(result))
 
-task1()
+# task1()
+
+gdp_data, life_data = preprocess_data()
+
+print(gdp_data.isna().any())
 
 
 # def check_life_mean():
