@@ -1,76 +1,94 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
-root = './assignment1/data/'
-
-def preprocess_data():
-    gdp_data = pd.read_csv(root + 'gdp-per-capita-penn-world-table.csv')
-    life_data = pd.read_csv(root + 'life-expectancy-at-birth-total-years.csv')
-    life_columns, gdb_columns = life_data.columns, gdp_data.columns
-    year = life_columns[2]
-    life_country, gdb_country = set(life_data[life_columns[0]]), set(gdp_data[gdb_columns[0]])
-    
-    # find the same countries
-    country = list(life_country & gdb_country)
-    # print(country)
-    
-    new_life_data = life_data[(life_data[year] >= 1970) & (life_data[year] <= 2019)]
-    new_life_data = new_life_data[new_life_data[life_columns[0]].isin(country)]
-    new_gdp_data = gdp_data[gdp_data[gdb_columns[0]].isin(country)]
-    
-    # d = dict()
-    # diff = 0
-    # for item in country:
-    #     value = [len(new_life_data[new_life_data[life_columns[0]] == item]), len(new_gdp_data[new_gdp_data[gdb_columns[0]] == item])]
-    #     d[item] = value
-    #     diff += value[1] - value[0]
-    # # print(new_life_data.head)
-    # print(d)
-    # print(diff)    
-    
-    print(len(new_life_data))
-    print(len(new_gdp_data))
-
-    return new_gdp_data, new_life_data
-
-def task1():
-    gdp_data, life_data = preprocess_data()
-    mean_life, std_life = life_data[life_data.columns[3]].mean(), life_data[life_data.columns[3]].std()
-    result = life_data[[life_data.columns[0], life_data.columns[3]]].groupby('Entity').mean()
-    result = result.sort_values(by=life_data.columns[3], ascending=False)
-    result = result[result[result.columns[0]] >= mean_life + std_life]
-    print(mean_life)    
-    print(std_life)
-    print(result)
-    print(type(result))
-
-task1()
+'''
+Defines here
+'''
+LifeExpShort = 'Life expectancy at birth, total (years)'
+GdpShort = 'GDP per capita (output, multiple price benchmarks)'
 
 
-# def check_life_mean():
-#     columns = life_data.columns
-#     life_item = columns[3]
-#     life_mean = life_data[life_item].mean()
-#     life_var = life_mean
-#     print(life_mean)
-#     print(columns)
+'''
+Read the Data
+Process two Dataset and Combine two dataset
+Set the same years arrange in diffent countries, if miss the datas, fill it with mean
+'''
+GdpData = pd.read_csv('data/gdp-per-capita-penn-world-table.csv')
+LifeExpData = pd.read_csv('data/life-expectancy-at-birth-total-years.csv')
 
-# check_life_mean()
+LifeExpCountry, GdpCountry = LifeExpData['Entity'].unique(), GdpData['Entity'].unique()
+all_CountryList = np.intersect1d(LifeExpCountry, GdpCountry)         
+all_years = np.arange(1970,2019)
 
-# print(life_data.head())
-exit(0)
+#create the new dataframe, contains all possible combinations.
+all_combination = pd.MultiIndex.from_product([all_CountryList, all_years], names=['Entity', 'Year'])
+ConbinedData = pd.DataFrame(index=all_combination).reset_index()
+#merge data accroding to the ConbinedData colum index.
+ConbinedData = pd.merge(ConbinedData, LifeExpData, on=['Entity','Year'], how='left' )
+ConbinedData = pd.merge(ConbinedData, GdpData, on=['Entity','Year','Code'], how='left' )
 
-# print(gdb_data.shape)
-# print(gdb_data.head())
+#Fill the miss data by the mean of each country
+CountryMeans = ConbinedData.groupby('Entity')[[LifeExpShort,GdpShort]].mean()
+ConbinedData[LifeExpShort].fillna(CountryMeans[LifeExpShort], inplace=True)
+ConbinedData[GdpShort].fillna(CountryMeans[GdpShort], inplace=True)
 
-# check the country gdb_data
-columns = gdp_data.columns
-# entity = set(gdb_data[columns[0]])
-# print(entity)
-# print(len(entity))
 
-# print(gdb_data[columns[0] == 'Albania'])
 
-albania_gdb_data = gdp_data[gdp_data[columns[0]] == 'Albania']
-plot_gdb_data = albania_gdb_data
-print(albania_gdb_data)
+'''
+Following task
+'''
+def GdpVSExp():
+    for country in all_CountryList:
+        plt.scatter(ConbinedData[ConbinedData['Entity']==country][LifeExpShort], 
+                    ConbinedData[ConbinedData['Entity']==country][GdpShort],
+                    label=country)
+    plt.title('Scatter Plot of GDP per Capita vs. Life Expectancy')
+    plt.xlabel('GDP per Capita')
+    plt.ylabel('Life Expectancy')
+    plt.legend(title='Country')
+    plt.grid(True)
+    plt.show()   
+
+
+def task1(DataSet):
+    LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
+    Country_LifeExp_Mean = DataSet.groupby("Entity")[LifeExpShort].mean()
+    Upper_LifeExp = Country_LifeExp_Mean[Country_LifeExp_Mean >= LifeExp_Mean+LifeExp_std]
+    Upper_LifeExp.sort_values(ascending=False) # sort the value
+    print(Upper_LifeExp)
+    plt.figure()
+    plt.bar(Upper_LifeExp.index, Upper_LifeExp.values)
+    plt.axhline(y=LifeExp_Mean, color='orange', label='Gloabl Mean')
+    plt.axhline(y=LifeExp_std, color='green', label='Gloabl std' )
+    plt.axhline(y=LifeExp_std+LifeExp_Mean, color='red', label='one gloabl std above mean' )
+    plt.xlabel('Country')
+    plt.ylabel('Average Life Expectancy')
+    plt.title('Average Life Expectancy by Country higher than one standard deviation above the mean ')
+    plt.xticks(rotation=90)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def task2(DataSet):
+  '''
+   high life expectancy but have low GDP
+   Defien high as mean+std, Define low as mean-std
+  '''
+  LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
+  Gdp_Mean, Gdp_std = DataSet[GdpShort].mean(), DataSet[GdpShort].std()
+  High_LifeExp_threshold = LifeExp_Mean + 0.35*LifeExp_std
+  Low_Gdp_threshold = Gdp_Mean - 0.35*Gdp_std
+  Country_LifeExp_Mean = DataSet.groupby("Entity")[[LifeExpShort, GdpShort]].mean()
+  ans = Country_LifeExp_Mean[(Country_LifeExp_Mean[LifeExpShort] >= High_LifeExp_threshold) 
+                            & (Country_LifeExp_Mean[GdpShort] <= Low_Gdp_threshold)]
+  print(ans)
+  
+
+if __name__ == '__main__':
+# Uncomment when executing task
+
+    #GdpVSExp()
+    #task1(ConbinedData)
+    #task2(ConbinedData)
