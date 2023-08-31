@@ -40,8 +40,6 @@ CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year', 'Code'],
 CombinedData = pd.merge(CombinedData, GdpData,on = ['Entity', 'Year', 'Code'], how='left' )
 CombinedData = pd.merge(CombinedData, NationalGdpData, how='left' )
 
-##########HIIIIIIIII
-
 #Fill the miss data by the mean of each country
 CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort, NationalGdpShort]].mean().reset_index().values
 IndexDict = dict()
