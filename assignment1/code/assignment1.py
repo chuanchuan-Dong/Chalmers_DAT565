@@ -48,9 +48,9 @@ for item in CountryMeans:
   IndexDict[item[0]] = item[1:]
 CombinedData[LifeExpShort] = CombinedData[LifeExpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[0]))
 CombinedData[GdpShort] = CombinedData[GdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[1]))
-CombinedData[NationalGdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[2]))
+CombinedData[NationalGdpShort] = CombinedData[NationalGdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[2]))
 CombinedData.to_csv('./data/test.csv')
-
+exit(0)
 
 def task1(DataSet):
     LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
