@@ -20,36 +20,36 @@ NationalGdpData = pd.read_csv('data/national-gdp-penn-world-table.csv')
 
 LifeExpCountry, GdpCountry, NationalGdpCountry = LifeExpData['Entity'].unique(), GdpData['Entity'].unique(), NationalGdpData['Entity'].unique()
 all_CountryList = np.intersect1d(LifeExpCountry, GdpCountry)
-all_CountryList = np.intersect1d(all_CountryList, NationalGdpCountry)         
+all_CountryList = np.intersect1d(all_CountryList, NationalGdpCountry)
+
+CountryAndCode = GdpData[['Entity', 'Code']].drop_duplicates().values
+CountryDic = dict()
+for item in CountryAndCode:
+  CountryDic[item[0]] = item[1]
+
 all_years = np.arange(1970,2020)
 
 #create the new dataframe, contains all possible combinations.
 all_combination = pd.MultiIndex.from_product([all_CountryList, all_years], names=['Entity', 'Year'])
 CombinedData = pd.DataFrame(index=all_combination).reset_index()
+CombinedData['Code'] = [pd.NA for i in range(len(CombinedData))]
+CombinedData['Code']=CombinedData['Code'].fillna(CombinedData['Entity'].apply(lambda x: CountryDic.get(x)))
 
 #merge data accroding to the CombinedData colum index.
-CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year'], how='left' )
-CombinedData = pd.merge(CombinedData, GdpData, how='left' )
+CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year', 'Code'], how='left' )
+CombinedData = pd.merge(CombinedData, GdpData,on = ['Entity', 'Year', 'Code'], how='left' )
 CombinedData = pd.merge(CombinedData, NationalGdpData, how='left' )
 
 
 #Fill the miss data by the mean of each country
-CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort, NationalGdpShort]].mean().reset_index()
-# print(CountryMeans)
-print(CountryMeans[CountryMeans['Entity'] == 'Bermuda'].values)
-
-print(CombinedData[CombinedData[LifeExpShort].isnull()])
-CombinedData[LifeExpShort].fillna(CountryMeans[LifeExpShort], inplace=True)
-print(CombinedData[CombinedData['Entity'] == 'Bermuda'].values)
-print(CombinedData[LifeExpShort])
-print(CountryMeans[LifeExpShort])
-CombinedData[GdpShort].fillna(CountryMeans[GdpShort], inplace=True)
-CombinedData[NationalGdpShort].fillna(CountryMeans[NationalGdpShort], inplace=True)
+CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort, NationalGdpShort]].mean().reset_index().values
+IndexDict = dict()
+for item in CountryMeans:
+  IndexDict[item[0]] = item[1:]
+CombinedData[LifeExpShort] = CombinedData[LifeExpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[0]))
+CombinedData[GdpShort] = CombinedData[GdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[1]))
+CombinedData[NationalGdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[2]))
 CombinedData.to_csv('./data/test.csv')
-# print(CombinedData.iloc[2802].values)
-# print(CombinedData[CombinedData.isnull()])
-# print(CombinedData.columns)
-exit()
 
 
 def task1(DataSet):
