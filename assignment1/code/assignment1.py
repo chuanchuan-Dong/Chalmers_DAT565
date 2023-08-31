@@ -7,7 +7,7 @@ Defines here
 '''
 LifeExpShort = 'Life expectancy at birth, total (years)'
 GdpShort = 'GDP per capita (output, multiple price benchmarks)'
-
+NationalGdpShort = 'GDP (output, multiple price benchmarks)'
 
 '''
 Read the Data
@@ -16,9 +16,11 @@ Set the same years arrange in diffent countries, if miss the datas, fill it with
 '''
 GdpData = pd.read_csv('data/gdp-per-capita-penn-world-table.csv')
 LifeExpData = pd.read_csv('data/life-expectancy-at-birth-total-years.csv')
+NationalGdpData = pd.read_csv('data/national-gdp-penn-world-table.csv')
 
-LifeExpCountry, GdpCountry = LifeExpData['Entity'].unique(), GdpData['Entity'].unique()
-all_CountryList = np.intersect1d(LifeExpCountry, GdpCountry)         
+LifeExpCountry, GdpCountry, NationalGdpCountry = LifeExpData['Entity'].unique(), GdpData['Entity'].unique(), NationalGdpData['Entity'].unique()
+all_CountryList = np.intersect1d(LifeExpCountry, GdpCountry)
+all_CountryList = np.intersect1d(all_CountryList, NationalGdpCountry)         
 all_years = np.arange(1970,2020)
 
 #create the new dataframe, contains all possible combinations.
@@ -27,14 +29,27 @@ CombinedData = pd.DataFrame(index=all_combination).reset_index()
 
 #merge data accroding to the CombinedData colum index.
 CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year'], how='left' )
-CombinedData = pd.merge(CombinedData, GdpData, on=['Entity','Year','Code'], how='left' )
+CombinedData = pd.merge(CombinedData, GdpData, how='left' )
+CombinedData = pd.merge(CombinedData, NationalGdpData, how='left' )
+
 
 #Fill the miss data by the mean of each country
-CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort]].mean()
+CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort, NationalGdpShort]].mean().reset_index()
+# print(CountryMeans)
+print(CountryMeans[CountryMeans['Entity'] == 'Bermuda'].values)
 
-
+print(CombinedData[CombinedData[LifeExpShort].isnull()])
 CombinedData[LifeExpShort].fillna(CountryMeans[LifeExpShort], inplace=True)
+print(CombinedData[CombinedData['Entity'] == 'Bermuda'].values)
+print(CombinedData[LifeExpShort])
+print(CountryMeans[LifeExpShort])
 CombinedData[GdpShort].fillna(CountryMeans[GdpShort], inplace=True)
+CombinedData[NationalGdpShort].fillna(CountryMeans[NationalGdpShort], inplace=True)
+CombinedData.to_csv('./data/test.csv')
+# print(CombinedData.iloc[2802].values)
+# print(CombinedData[CombinedData.isnull()])
+# print(CombinedData.columns)
+exit()
 
 
 def task1(DataSet):
@@ -63,16 +78,25 @@ def task2(DataSet):
    Defien high as mean+std, Define low as mean-std
   '''
   LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
-  Gdp_Mean, Gdp_std = DataSet[GdpShort].mean(), DataSet[GdpShort].std()
+  Gdp_Mean, Gdp_std = DataSet[NationalGdpShort].mean(), DataSet[NationalGdpShort].std()
   High_LifeExp_threshold = LifeExp_Mean + 0.35*LifeExp_std
   Low_Gdp_threshold = Gdp_Mean - 0.35*Gdp_std
-  Country_LifeExp_Mean = DataSet.groupby("Entity")[[LifeExpShort, GdpShort]].mean()
+  Country_LifeExp_Mean = DataSet.groupby("Entity")[[LifeExpShort, GdpShort,NationalGdpShort]].mean()
   ans = Country_LifeExp_Mean[(Country_LifeExp_Mean[LifeExpShort] >= High_LifeExp_threshold) 
-                            & (Country_LifeExp_Mean[GdpShort] <= Low_Gdp_threshold)]
+                            & (Country_LifeExp_Mean[NationalGdpShort] <= Low_Gdp_threshold)]
   print(ans)
   
+def task3(Dataset:pd.DataFrame, threshold = 0.1):
+  """
+  strong economy has strong life expectancy
+  """
+  StrongEconomy = Dataset.sort_values(by=NationalGdpShort, ascending=False)
+  print(StrongEconomy)
+
+
 
 if __name__ == '__main__':
 # Uncomment when executing task
-  task1(CombinedData)
+  # task1(CombinedData)
   # task2(CombinedData)
+  task3(CombinedData)
