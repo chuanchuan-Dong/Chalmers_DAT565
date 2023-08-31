@@ -49,7 +49,23 @@ CombinedData[LifeExpShort] = CombinedData[LifeExpShort].fillna(CombinedData['Ent
 CombinedData[GdpShort] = CombinedData[GdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[1]))
 CombinedData[NationalGdpShort] = CombinedData[NationalGdpShort].fillna(CombinedData['Entity'].apply(lambda x: IndexDict.get(x)[2]))
 CombinedData.to_csv('./data/test.csv')
-exit(0)
+
+'''
+Following task
+'''
+def GdpVSExp():
+    for country in all_CountryList:
+        plt.scatter(CombinedData[CombinedData['Entity']==country][GdpShort],
+                    CombinedData[CombinedData['Entity']==country][LifeExpShort], 
+                    s=5,
+                    label=country)
+    plt.title('Scatter Plot of GDP per Capita vs. Life Expectancy')
+    plt.xlabel('GDP per Capita')
+    plt.ylabel('Life Expectancy')
+    plt.legend(title='Country')
+    plt.grid(True)
+    plt.show()   
+
 
 def task1(DataSet):
     LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
@@ -96,6 +112,8 @@ def task3(Dataset:pd.DataFrame, threshold = 0.1):
 
 if __name__ == '__main__':
 # Uncomment when executing task
+  GdpVSExp()
+
   # task1(CombinedData)
   # task2(CombinedData)
-  task3(CombinedData)
+  #task3(CombinedData)
