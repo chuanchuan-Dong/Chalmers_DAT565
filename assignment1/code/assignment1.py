@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 '''
 Defines here
@@ -102,7 +101,7 @@ def task2(DataSet, threshold = 0.1):
   ans = DataSet_Mean[(DataSet_Mean[LifeExpShort] >= High_LifeExp_threshold) 
                             & (DataSet_Mean[NationalGdpShort] <= Low_Gdp_threshold)]
   print(ans)
-  #Visualization
+  # Visualization
   plt.figure()
   for country in DataSet_Mean.index:
       if country in ans.index:  
@@ -128,14 +127,20 @@ def task2(DataSet, threshold = 0.1):
   plt.show()
      
   
-def task3(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num = 10):
+def task3And4(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num = 10):
   """
-  strong economy has strong life expectancy
+  GDPDataset can be either National Gdp Dataset or Gdp Dataset per capita.
+  TheIndex indicates the corresponding column of Dataframe
+  
+  This function completes the task3 and task4 in Problem 2
+  By calculating the frequency of country appearing in top num, judge if a country is a strong economy 
   """
-  # NewDataset = Dataset.groupby('Year')[['Entity', NationalGdpShort]].sort_values(NationalGdpShort)
   YearColumns = GDPDataset['Year'].unique()
   UpperYear, LowerYear = max(YearColumns), min(YearColumns)
+  
+  # a dict to calculate the frequency of country ranking top NUM countries in Gdp
   TimeDict = dict()
+  
   for i in range(LowerYear, UpperYear + 1):
     NewDataset = GDPDataset[GDPDataset['Year'] == i].sort_values(TheIndex, ascending=False)
     Countries = NewDataset['Entity'].iloc[:num]
@@ -144,6 +149,8 @@ def task3(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num
       
   YearColumns = LifeDataset['Year'].unique()
   UpperYear, LowerYear = max(YearColumns), min(YearColumns)
+  
+  # a dict to calculate the frequency of country ranking top NUM countries in Life Expectancy
   CountryDicts = dict()
   for i in range(LowerYear, UpperYear + 1):
     NewDataset = LifeDataset[LifeDataset['Year'] == i].sort_values(LifeExpShort, ascending=False)
@@ -153,13 +160,22 @@ def task3(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num
   
   PeopleZip = list(zip(TimeDict.keys(), TimeDict.values()))
   LifeZip = list(zip(CountryDicts.keys(), CountryDicts.values()))
+  
+  # the dict of the intersection dict
   IntersectDict = dict()
+  
+  # calculate the intersection of the two dicts
   for item in TimeDict.keys():
     if item in CountryDicts:
       IntersectDict[item] = (TimeDict[item], CountryDicts[item])
+      
   PeopleZip.sort(key=lambda x : x[1], reverse=True)
   LifeZip.sort(key=lambda x : x[1], reverse=True)
+  
+  # Print the result
   print(IntersectDict)
+  print(PeopleZip)
+  print(LifeZip)
   
   plt.figure(figsize=(8, 6))
   for item in IntersectDict.keys():
@@ -176,10 +192,11 @@ def task3(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num
 
 
 if __name__ == '__main__':
-# Uncomment when executing task
-  # GdpVSExp()
+  # Problem 1
+  GdpVSExp()
 
-  # task1(CombinedData)
-  # task2(CombinedData)
-  # task3(NationalGdpData, LifeExpData, num = 20)
-   task3(GdpData, LifeExpData, GdpShort, 20)
+  # Problem 2
+  task1(CombinedData)
+  task2(CombinedData)
+  task3And4(NationalGdpData, LifeExpData, num = 20) # task3
+  task3And4(GdpData, LifeExpData, GdpShort, 20) # task4
