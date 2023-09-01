@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 
 '''
 Defines here
@@ -39,7 +40,6 @@ CombinedData['Code']=CombinedData['Code'].fillna(CombinedData['Entity'].apply(la
 CombinedData = pd.merge(CombinedData, LifeExpData, on=['Entity','Year', 'Code'], how='left' )
 CombinedData = pd.merge(CombinedData, GdpData,on = ['Entity', 'Year', 'Code'], how='left' )
 CombinedData = pd.merge(CombinedData, NationalGdpData, how='left' )
-
 
 #Fill the miss data by the mean of each country
 CountryMeans = CombinedData.groupby('Entity')[[LifeExpShort,GdpShort, NationalGdpShort]].mean().reset_index().values
@@ -88,7 +88,7 @@ def task1(DataSet):
     plt.show()
 
 
-def task2(DataSet):
+def task2(DataSet, threshold = 0.1):
   '''
    high life expectancy but have low GDP
    Defien high as mean+std, Define low as mean-std
@@ -128,13 +128,51 @@ def task2(DataSet):
   plt.show()
      
   
-def task3(Dataset:pd.DataFrame, threshold = 0.1):
+def task3(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num = 10):
   """
   strong economy has strong life expectancy
   """
-  StrongEconomy = Dataset.sort_values(by=NationalGdpShort, ascending=False)
-  print(StrongEconomy)
-
+  # NewDataset = Dataset.groupby('Year')[['Entity', NationalGdpShort]].sort_values(NationalGdpShort)
+  YearColumns = GDPDataset['Year'].unique()
+  UpperYear, LowerYear = max(YearColumns), min(YearColumns)
+  TimeDict = dict()
+  for i in range(LowerYear, UpperYear + 1):
+    NewDataset = GDPDataset[GDPDataset['Year'] == i].sort_values(TheIndex, ascending=False)
+    Countries = NewDataset['Entity'].iloc[:num]
+    for country in Countries:
+      TimeDict[country] = TimeDict.get(country, 0) + 1
+      
+  YearColumns = LifeDataset['Year'].unique()
+  UpperYear, LowerYear = max(YearColumns), min(YearColumns)
+  CountryDicts = dict()
+  for i in range(LowerYear, UpperYear + 1):
+    NewDataset = LifeDataset[LifeDataset['Year'] == i].sort_values(LifeExpShort, ascending=False)
+    Countries = NewDataset['Entity'].iloc[:num]
+    for country in Countries:
+      CountryDicts[country] = CountryDicts.get(country, 0) + 1
+  
+  PeopleZip = list(zip(TimeDict.keys(), TimeDict.values()))
+  LifeZip = list(zip(CountryDicts.keys(), CountryDicts.values()))
+  IntersectDict = dict()
+  for item in TimeDict.keys():
+    if item in CountryDicts:
+      IntersectDict[item] = (TimeDict[item], CountryDicts[item])
+  PeopleZip.sort(key=lambda x : x[1], reverse=True)
+  LifeZip.sort(key=lambda x : x[1], reverse=True)
+  print(IntersectDict)
+  
+  plt.figure(figsize=(8, 6))
+  for item in IntersectDict.keys():
+    plt.scatter(IntersectDict[item][0], IntersectDict[item][1], label = item)
+    plt.annotate(item, (IntersectDict[item][0] + 0.2, IntersectDict[item][1] + 0.5))
+  if TheIndex == NationalGdpShort:
+    plt.title('Gdp vs Life Expectancy')
+    plt.xlabel(f'Frequency of Countries rankng in first {num} places of GDP')
+  else:
+    plt.title('Gdp per capita vs Life Expectancy')
+    plt.ylabel(f'Frequency of Countries rankng in first {num} places of GDP per capita')
+  plt.ylabel(f'Frequency of Countries rankng in first {num} places of Life Expectancy')
+  plt.show()
 
 
 if __name__ == '__main__':
@@ -142,5 +180,6 @@ if __name__ == '__main__':
   # GdpVSExp()
 
   # task1(CombinedData)
-  task2(CombinedData)
-  # task3(CombinedData)
+  # task2(CombinedData)
+  # task3(NationalGdpData, LifeExpData, num = 20)
+   task3(GdpData, LifeExpData, GdpShort, 20)
