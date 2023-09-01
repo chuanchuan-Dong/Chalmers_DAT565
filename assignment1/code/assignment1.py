@@ -95,12 +95,38 @@ def task2(DataSet):
   '''
   LifeExp_Mean, LifeExp_std = DataSet[LifeExpShort].mean(), DataSet[LifeExpShort].std()
   Gdp_Mean, Gdp_std = DataSet[NationalGdpShort].mean(), DataSet[NationalGdpShort].std()
-  High_LifeExp_threshold = LifeExp_Mean + 0.35*LifeExp_std
-  Low_Gdp_threshold = Gdp_Mean - 0.35*Gdp_std
-  Country_LifeExp_Mean = DataSet.groupby("Entity")[[LifeExpShort, GdpShort,NationalGdpShort]].mean()
-  ans = Country_LifeExp_Mean[(Country_LifeExp_Mean[LifeExpShort] >= High_LifeExp_threshold) 
-                            & (Country_LifeExp_Mean[NationalGdpShort] <= Low_Gdp_threshold)]
+  High_LifeExp_threshold = LifeExp_Mean + LifeExp_std
+  Low_Gdp_threshold = Gdp_Mean - 0.1*Gdp_std
+  DataSet_Mean = DataSet.groupby("Entity")[[LifeExpShort,NationalGdpShort]].mean()
+  print(DataSet_Mean[LifeExpShort].max())
+  ans = DataSet_Mean[(DataSet_Mean[LifeExpShort] >= High_LifeExp_threshold) 
+                            & (DataSet_Mean[NationalGdpShort] <= Low_Gdp_threshold)]
   print(ans)
+  #Visualization
+  plt.figure()
+  for country in DataSet_Mean.index:
+      if country in ans.index:  
+        plt.scatter(
+                    DataSet_Mean.loc[country][NationalGdpShort]/1e10, 
+                    DataSet_Mean.loc[country][LifeExpShort], 
+                    s=15,
+                    label=country)
+        plt.annotate(country, (DataSet_Mean.loc[country][NationalGdpShort]/1e10, DataSet_Mean.loc[country][LifeExpShort]))
+      else:
+               plt.scatter(
+                  DataSet_Mean.loc[country][NationalGdpShort]/1e10, 
+                  DataSet_Mean.loc[country][LifeExpShort], 
+                  s=5,
+                  label=country)
+               
+  line1 = plt.axhline(High_LifeExp_threshold, color='blue', label='High_LifeExp_threshold')
+  line2 = plt.axvline(Low_Gdp_threshold/1e10, color='red', label='Low_Gdp_threshold')
+  plt.legend(handles=[line1, line2])
+  plt.xlabel(NationalGdpShort+'e^10')
+  plt.ylabel(LifeExpShort) 
+
+  plt.show()
+     
   
 def task3(Dataset:pd.DataFrame, threshold = 0.1):
   """
@@ -113,8 +139,8 @@ def task3(Dataset:pd.DataFrame, threshold = 0.1):
 
 if __name__ == '__main__':
 # Uncomment when executing task
-  GdpVSExp()
+  # GdpVSExp()
 
   # task1(CombinedData)
-  # task2(CombinedData)
-  #task3(CombinedData)
+  task2(CombinedData)
+  # task3(CombinedData)
