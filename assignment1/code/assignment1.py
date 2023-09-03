@@ -1,3 +1,8 @@
+"""
+Group Name: Group 101
+Group Members: Wang Ziyuan, Lin Meixi, Dong Yuchuan
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
