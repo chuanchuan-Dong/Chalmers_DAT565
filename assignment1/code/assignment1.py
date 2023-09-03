@@ -127,7 +127,7 @@ def task2(DataSet, threshold = 0.1):
   plt.show()
      
   
-def task3And4(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort,  num = 10):
+def task3And4(GDPDataset:pd.DataFrame, LifeDataset:pd.DataFrame,TheIndex = NationalGdpShort,  num = 10):
   """
   GDPDataset can be either National Gdp Dataset or Gdp Dataset per capita.
   TheIndex indicates the corresponding column of Dataframe
@@ -173,9 +173,9 @@ def task3And4(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort, 
   LifeZip.sort(key=lambda x : x[1], reverse=True)
   
   # Print the result
-  print(IntersectDict)
-  print(PeopleZip)
-  print(LifeZip)
+  # print(IntersectDict)
+  # print(PeopleZip)
+  # print(LifeZip)
   
   plt.figure(figsize=(8, 6))
   for item in IntersectDict.keys():
@@ -186,10 +186,26 @@ def task3And4(GDPDataset:pd.DataFrame, LifeDataset,TheIndex = NationalGdpShort, 
     plt.xlabel(f'Frequency of Countries rankng in first {num} places of GDP')
   else:
     plt.title('Gdp per capita vs Life Expectancy')
-    plt.ylabel(f'Frequency of Countries rankng in first {num} places of GDP per capita')
+    plt.xlabel(f'Frequency of Countries rankng in first {num} places of GDP per capita')
   plt.ylabel(f'Frequency of Countries rankng in first {num} places of Life Expectancy')
   plt.show()
-
+  
+  if TheIndex == GdpShort:
+    # using coefficient metric to see the correlation between GDP and life expectancy
+    GdpCountrySelected = TimeDict.keys()
+    # print(GdpCountrySelected)
+    SelectedData = CombinedData[CombinedData['Entity'].isin(GdpCountrySelected)][[GdpShort, NationalGdpShort, LifeExpShort]]
+    plt.subplot(1,2,1)
+    plt.title('Life vs Gdp per capita')
+    plt.xlabel('Life Expectancy in so-called strong economy')
+    plt.ylabel('Gdp per capita in so-called strong economy')
+    plt.scatter(SelectedData[LifeExpShort],SelectedData[GdpShort], s = 0.7)
+    plt.subplot(1,2,2)
+    plt.title('Life vs NationalGdp')
+    plt.xlabel('Life Expectancy in so-called strong economy')
+    plt.ylabel('National Gdp in so-called strong economy')
+    plt.scatter(SelectedData[LifeExpShort],SelectedData[NationalGdpShort], s = 0.7)
+    plt.show()
 
 if __name__ == '__main__':
   # Problem 1
