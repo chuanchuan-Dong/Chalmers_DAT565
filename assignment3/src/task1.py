@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 Read data, Process data
 """
 data = pd.read_csv('data/protein-angle-dataset.csv')
-print(data.index)
-
-for i in data.index:
-    plt.scatter(data['phi'][i],
-                data["psi"][i], 
-                label=data['residue name'][i],
+name = data['residue name'].unique()
+for i in name:
+    plt.scatter(data[data['residue name']==i]['phi'],
+            data[data['residue name']==i]["psi"], 
+                label=i,
                 s=5)
 print(data['residue name'][0])
 plt.legend()       
