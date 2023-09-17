@@ -72,19 +72,26 @@ def task3():
     task3_data['phi'] = (data['phi'] - data['phi'].mean()) / data['phi'].std()
     task3_data['psi'] = (data['psi'] - data['psi'].mean()) / data['psi'].std()
     task3_data_array = [[task3_data.iloc[i]['phi'], task3_data.iloc[i]['psi']] for i in range(len(data))]
+    
     task3_data_array = np.array(task3_data_array)
     
     for times, sample in enumerate(range(200, 501, 100)):
         dbscan = DBSCAN(eps=0.3,min_samples=sample).fit(task3_data_array)
         # dbscan.fit(data_array)
         labels = dbscan.labels_
+        unique_label, count = np.unique(labels, return_counts=True)
+        print(unique_label, count)
         plt.subplot(2,2,times+1)
         for i in range(-1, max(labels) + 1):
             index = np.where(labels==i)[0]
             # print(len(index))
             phi, psi = data.iloc[index]['phi'].values, data.iloc[index]['psi'].values
-            plt.scatter(phi, psi, label=i, s=0.7)
-        plt.legend(labels=[j for j in range(-1, max(labels)+1)], loc='lower right')
+            if i == -1:
+                plt.scatter(phi, psi, label=f'Outlier, Count:{count[i+1]} ', s=7, color='red', marker='*')
+            else:
+
+                plt.scatter(phi, psi, label=f'Categories:{i}, Count:{count[i+1]} ', s=0.7)
+        plt.legend(loc='upper right')
         plt.xlabel('Phi')
         plt.ylabel('Psi')
         plt.title(f'sample={sample}')
@@ -116,6 +123,6 @@ def task4():
 
 if __name__ == '__main__':
     # task1()
-    # task2()
-    # task3()
+    # # task2()
+    task3()
     task4()
