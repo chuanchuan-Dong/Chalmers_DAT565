@@ -76,36 +76,41 @@ def task3():
     task3_data_array = np.array(task3_data_array)
     
     
-    # for times, sample in enumerate(range(200, 501, 100)):
-    #     dbscan = DBSCAN(eps=0.3,min_samples=sample).fit(task3_data_array)
-    #     # dbscan.fit(data_array)
-    #     labels = dbscan.labels_
-    #     unique_label, count = np.unique(labels, return_counts=True)
-    #     print(unique_label, count)
-    #     plt.subplot(2,2,times+1)
-    #     for i in range(-1, max(labels) + 1):
-    #         index = np.where(labels==i)[0]
-    #         # print(len(index))
-    #         phi, psi = data.iloc[index]['phi'].values, data.iloc[index]['psi'].values
-    #         if i == -1:
-    #             plt.scatter(phi, psi, label=f'Outlier, Count:{count[i+1]} ', s=7, color='red', marker='*')
-    #         else:
+    for times, sample in enumerate(range(200, 501, 100)):
+        dbscan = DBSCAN(eps=0.3,min_samples=sample).fit(task3_data_array)
+        # dbscan.fit(data_array)
+        labels = dbscan.labels_
+        unique_label, count = np.unique(labels, return_counts=True)
+        print(unique_label, count)
+        plt.subplot(2,2,times+1)
+        for i in range(-1, max(labels) + 1):
+            index = np.where(labels==i)[0]
+            # print(len(index))
+            phi, psi = data.iloc[index]['phi'].values, data.iloc[index]['psi'].values
+            if i == -1:
+                plt.scatter(phi, psi, label=f'Outlier, Count:{count[i+1]} ', s=7, color='lightgreen', marker='*')
+            else:
 
-    #             plt.scatter(phi, psi, label=f'Categories:{i}, Count:{count[i+1]} ', s=0.7)
-    #     plt.legend(loc='upper right')
-    #     plt.xlabel('Phi')
-    #     plt.ylabel('Psi')
-    #     plt.title(f'sample={sample}')
+                plt.scatter(phi, psi, label=f'Categories:{i}, Count:{count[i+1]} ', s=0.7)
+        plt.legend(loc='upper right')
+        plt.xlabel('Phi')
+        plt.ylabel('Psi')
+        plt.title(f'sample={sample}')
     # plt.show()
-    db = DBSCAN(eps=0.3, min_samples=200)
-    db.fit(task3_data_array)
-    # data_new = pd.concat([task3_data,pd.Series({'label': db.labels_})], axis=1)
-    task3_data['label'] = db.labels_
-    data33 =  (task3_data[task3_data['label']==-1]).groupby('residue name')
-    plt.bar(data33.size().index, data33.size().values)
-    plt.xlabel("resiue type")
-    plt.ylabel("Outlier number")
-    plt.title("Outliers number VS redidue type")
+    plt.clf()
+    for times, sample in enumerate(range(200, 501, 100)):
+        db = DBSCAN(eps=0.3, min_samples=sample)
+        db.fit(task3_data_array)
+        # data_new = pd.concat([task3_data,pd.Series({'label': db.labels_})], axis=1)
+        task3_data['label'] = db.labels_
+        data33 =  (task3_data[task3_data['label']==-1]).groupby('residue name')
+        plt.subplot(2,2,times+1)
+        plt.bar(data33.size().index, data33.size().values)
+        plt.tick_params(labelsize=5)
+        plt.xlabel("residue type")
+        plt.ylabel("Outlier number")
+        plt.title(f"sample={sample}")
+    plt.suptitle("Outliers number VS residue type")
     plt.show()
 """
 Plot the bar chat between residue and outlier in the case of minsample=200, eps=0.3
@@ -137,7 +142,7 @@ def task4():
 
 
 if __name__ == '__main__':
-    # task1()
-    # # task2()
+    task1()
+    task2()
     task3()
     task4()
