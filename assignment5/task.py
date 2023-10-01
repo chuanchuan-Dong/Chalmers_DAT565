@@ -36,10 +36,10 @@ def BellmanEquation(epsilon: float, V_init: np.array, reward: np.array, transiti
             # print(V_current)
 
 epsilon = 10
-reward = np.array([[0,0,0],[0,10,0],[0,0,0]])
-V_init = np.array([[0,0,0],[0,5,0],[0,0,0]])
+reward = np.array([[-1,1,],[0,10,0],[0,0,0]])
+V_init = np.array([[0,0,0],[0,0,0],[0,0,0]])
 transition_prob = np.array([0.8,0.2])
-V, P = BellmanEquation(epsilon, V_init, reward, transition_prob, gamma=1)
+V, P = BellmanEquation(epsilon, V_init, reward, transition_prob, gamma=0.5)
 print('Optimal Value:')
 print(V)
 print('Policy:')
